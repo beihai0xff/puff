@@ -1,2 +1,4 @@
 # puff
-高可用分布式锁服务
+Distributed Lock
+
+[中文文档](./docs/zh/dev/README.md)
