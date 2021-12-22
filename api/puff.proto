@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package puff;
+
+option go_package = "github.com/beihai0xff/puff/api";
+
+
+service puff {
+  // Sends a get lock request
+  rpc Lock (LockRequest) returns (LockReply) {}
+  // Sends a unlock request
+  rpc Unlock (LockRequest) returns (UnlockReply) {}
+}
+
+// The request message containing the lock's name.
+message LockRequest {
+  string key = 1;
+}
+
+// The response message containing the greetings
+message LockReply {
+  bool result = 1;
+}
+
+// The request message containing the lock's name.
+message UnlockRequest {
+  string key = 1;
+}
+
+// The response message containing the greetings
+message UnlockReply {
+  bool result = 1;
+}
