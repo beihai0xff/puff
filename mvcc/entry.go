@@ -1,4 +1,4 @@
-package storage
+package mvcc
 
 import (
 	"github.com/google/btree"
