@@ -1,16 +1,10 @@
 package log
 
 var defaultConfig = &OutputConfig{
-	Writer:    "console",
+	Writer:    OutputConsole,
 	Level:     "debug",
-	Formatter: OutputConsole,
+	Formatter: EncoderTypeConsole,
 }
-
-// output name
-const (
-	OutputConsole = "console"
-	OutputFile    = "file"
-)
 
 // OutputConfig log output: console file remote
 type OutputConfig struct {

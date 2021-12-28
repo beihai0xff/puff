@@ -3,6 +3,6 @@ package log
 var defaultTestConfig = &OutputConfig{
 
 	Writer:    OutputConsole,
-	Level:     "info",
-	Formatter: "json",
+	Level:     "debug",
+	Formatter: EncoderTypeJson,
 }

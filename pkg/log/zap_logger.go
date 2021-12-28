@@ -111,7 +111,7 @@ func (l *zapLog) Sync() error {
 	return l.logger.Sync()
 }
 
-// WithFields 设置一些业务自定义数据到每条log里
+// WithFields 设置一些业务自定义数据到每条 log 中
 func (l *zapLog) WithFields(fields ...string) *zap.Logger {
 
 	zapFields := make([]zap.Field, len(fields)/2)
