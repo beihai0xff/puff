@@ -3,7 +3,7 @@ package log
 var defaultConfig = &OutputConfig{
 	Writer:    "console",
 	Level:     "debug",
-	Formatter: "console",
+	Formatter: OutputConsole,
 }
 
 // output name
@@ -15,12 +15,12 @@ const (
 // OutputConfig log output: console file remote
 type OutputConfig struct {
 	// Writer 日志输出端 (console, file)
-	Writer      string
-	WriteConfig WriteConfig `yaml:"writer_config"`
+	Writer string
+	// FileConfig 日志文件配置，如果 Writer 为 file 则该配置不能为空
+	FileConfig FileConfig `yaml:"file_config"`
 
 	// Formatter 日志输出格式 (console, json)
-	Formatter    string
-	FormatConfig FormatConfig `yaml:"formatter_config"`
+	Formatter string
 
 	// Level 日志级别 debug info error
 	Level string
@@ -29,8 +29,8 @@ type OutputConfig struct {
 	CallerSkip int `yaml:"caller_skip"`
 }
 
-// WriteConfig 本地文件的配置
-type WriteConfig struct {
+// FileConfig 日志文件的配置
+type FileConfig struct {
 	// LogPath 日志路径
 	LogPath string `yaml:"log_path"`
 	// Filename 日志文件名
@@ -52,25 +52,6 @@ type WriteConfig struct {
 	// TimeUnit 按时间分割文件的时间单位
 	// 支持year/month/day/hour/minute, 默认为day
 	TimeUnit TimeUnit `yaml:"time_unit"`
-}
-
-// FormatConfig 日志格式配置
-type FormatConfig struct {
-	// TimeFmt 日志输出时间格式，空默认为"2006-01-02 15:04:05.000"
-	TimeFmt string `yaml:"time_fmt"`
-
-	// TimeKey 日志输出时间key， 默认为"T"
-	TimeKey string `yaml:"time_key"`
-	// LevelKey 日志级别输出key， 默认为"L"
-	LevelKey string `yaml:"level_key"`
-	// NameKey 日志名称key， 默认为"N"
-	NameKey string `yaml:"name_key"`
-	// CallerKey 日志输出调用者key， 默认"C"
-	CallerKey string `yaml:"caller_key"`
-	// MessageKey 日志输出消息体key，默认"M"
-	MessageKey string `yaml:"message_key"`
-	// StacktraceKey 日志输出堆栈trace key， 默认"S"
-	StacktraceKey string `yaml:"stacktrace_key"`
 }
 
 // WriteMode 日志写入模式，支持：1/2/3
