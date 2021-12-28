@@ -21,14 +21,19 @@ func newBtreeStorage() Storage {
 }
 
 func (t *btreeStorage) set(key string) error {
+
 	if key == "" {
 		return errors.New("empty string can not be added to btreeStorage")
 	}
 
 	entry := &mvcc.Entry{Key: key}
+
 	t.Lock()
+	defer t.Unlock()
+	if t.tree.Has(entry) {
+		return nil
+	}
 	t.tree.ReplaceOrInsert(entry)
-	t.Unlock()
 	return nil
 }
 
@@ -59,7 +64,8 @@ func (t *btreeStorage) Range(start, end string) []mvcc.Entry {
 	greater := &mvcc.Entry{Key: start}
 	lessThan := &mvcc.Entry{Key: end}
 	var res []mvcc.Entry
-
+	t.RLock()
+	defer t.RUnlock()
 	t.tree.AscendRange(greater, lessThan, func(item btree.Item) bool {
 		f := item.(*mvcc.Entry)
 		res = append(res, *f)
