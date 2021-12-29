@@ -6,15 +6,31 @@ import (
 	"github.com/beihai0xff/puff/mvcc/storage"
 )
 
-type MVCC interface {
-	set(key string) error
+type StateMachine interface {
+	Set(key string) error
 	Get(key string) *Entry
 	Delete(key string) error
 	Range(start, end string) ([]*Entry, error)
-	Backup()
+	Backup() StateMachineStatus
 }
 
-type store struct {
+type State struct {
 	sync.RWMutex
 	kvStorage storage.Storage
+	version   uint64
+
+	isDumping bool
+}
+
+func (s *State) Backup() error {
+	if s.isDumping {
+		return ErrStateMachineIsDumping
+	}
+	s.isDumping = true
+
+	s.kvStorage.Backup()
+
+	s.isDumping = false
+
+	return nil
 }

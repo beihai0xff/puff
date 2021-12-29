@@ -20,13 +20,13 @@ func newBtreeStorage() Storage {
 	}
 }
 
-func (t *btreeStorage) set(key string) error {
+func (t *btreeStorage) Set(key string, version uint64) error {
 
 	if key == "" {
 		return errors.New("empty string can not be added to btreeStorage")
 	}
 
-	entry := &mvcc.Entry{Key: key}
+	entry := &mvcc.Entry{Key: key, Version: version}
 
 	t.Lock()
 	defer t.Unlock()
