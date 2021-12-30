@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/btree"
 
-	"github.com/beihai0xff/puff/mvcc"
+	"github.com/beihai0xff/puff/internal/model"
 )
 
 type btreeStorage struct {
@@ -26,7 +26,7 @@ func (t *btreeStorage) Set(key string, version uint64) error {
 		return errors.New("empty string can not be added to btreeStorage")
 	}
 
-	entry := &mvcc.Entry{Key: key, Version: version}
+	entry := &model.Entry{Key: key, Version: version}
 
 	t.Lock()
 	defer t.Unlock()
@@ -37,19 +37,19 @@ func (t *btreeStorage) Set(key string, version uint64) error {
 	return nil
 }
 
-func (t *btreeStorage) Get(key string) (*mvcc.Entry, error) {
-	entry := &mvcc.Entry{Key: key}
+func (t *btreeStorage) Get(key string) (*model.Entry, error) {
+	entry := &model.Entry{Key: key}
 	t.RLock()
 	item := t.tree.Get(entry)
 	t.RUnlock()
 	if item == nil {
 		return nil, nil
 	}
-	return item.(*mvcc.Entry), nil
+	return item.(*model.Entry), nil
 }
 
 func (t *btreeStorage) Delete(key string) error {
-	entry := &mvcc.Entry{Key: key}
+	entry := &model.Entry{Key: key}
 	t.Lock()
 	item := t.tree.Delete(entry)
 	t.Unlock()
@@ -60,14 +60,14 @@ func (t *btreeStorage) Delete(key string) error {
 	return nil
 }
 
-func (t *btreeStorage) Range(start, end string) []mvcc.Entry {
-	greater := &mvcc.Entry{Key: start}
-	lessThan := &mvcc.Entry{Key: end}
-	var res []mvcc.Entry
+func (t *btreeStorage) Range(start, end string) []model.Entry {
+	greater := &model.Entry{Key: start}
+	lessThan := &model.Entry{Key: end}
+	var res []model.Entry
 	t.RLock()
 	defer t.RUnlock()
 	t.tree.AscendRange(greater, lessThan, func(item btree.Item) bool {
-		f := item.(*mvcc.Entry)
+		f := item.(*model.Entry)
 		res = append(res, *f)
 		return true
 	})

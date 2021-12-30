@@ -1,4 +1,4 @@
-package mvcc
+package model
 
 import (
 	"github.com/google/btree"

@@ -1,4 +1,4 @@
-package mvcc
+package model
 
 import "errors"
 

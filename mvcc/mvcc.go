@@ -1,16 +1,17 @@
-package mvcc
+package model
 
 import (
 	"sync"
 
+	"github.com/beihai0xff/puff/internal/model"
 	"github.com/beihai0xff/puff/mvcc/storage"
 )
 
 type StateMachine interface {
 	Set(key string) error
-	Get(key string) *Entry
+	Get(key string) *model.Entry
 	Delete(key string) error
-	Range(start, end string) ([]*Entry, error)
+	Range(start, end string) ([]*model.Entry, error)
 	Backup() StateMachineStatus
 }
 
