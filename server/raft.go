@@ -1,4 +1,4 @@
-package raft
+package server
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"go.etcd.io/etcd/client/pkg/v3/types"
@@ -16,30 +17,58 @@ import (
 	"go.uber.org/zap"
 )
 
-type raftNode struct {
-	id      uint64
-	peerMap map[uint64]string
-
-	node        raft.Node
-	raftStorage *raft.MemoryStorage
-
-	transport *rafthttp.Transport
-
+type raftNodeConfig struct {
 	logger *zap.Logger
+
+	// to check if msg receiver is removed from cluster
+	isIDRemoved func(id uint64) bool
+	raft.Node
+	raftStorage *raft.MemoryStorage
+	// heartbeat 心跳消息发送间隔
+	heartbeat time.Duration // for logging
+
 }
 
-func newRaftNode(id uint64, peerMap map[uint64]string) *raftNode {
+type raftNode struct {
+	id      uint64 // client ID for raft session
+	peerMap map[uint64]string
+
+	tickMu *sync.Mutex
+
+	node raft.Node
+	// MemoryStorage 是 etcd raft 提供的一个基于内存的实现，并不能进行持久化
+	raftStorage *raft.MemoryStorage
+
+	// transport specifies the transport to send and receive msgs to members.
+	// Sending messages MUST NOT block. It is okay to drop messages, since
+	// clients should timeout and reissue their messages.
+	// If transport is nil, server will panic.
+	transport rafthttp.Transporter
+
+	// 提供一个周期性的时钟定时触发 Tick 方法
+	ticker *time.Ticker
+
+	raftNodeConfig
+
+	done <-chan struct{}
+}
+
+func NewRaftNode(config raftNodeConfig) *raftNode {
 	n := &raftNode{
-		id:          id,
-		peerMap:     peerMap,
-		raftStorage: raft.NewMemoryStorage(),
-		logger:      zap.NewExample(),
+		raftNodeConfig: config,
+		raftStorage:    raft.NewMemoryStorage(),
 	}
-	go n.startRaft()
+	if n.heartbeat == 0 {
+		n.ticker = &time.Ticker{}
+	} else {
+		n.ticker = time.NewTicker(n.heartbeat)
+	}
+
+	go n.startNode()
 	return n
 }
 
-func (rn *raftNode) startRaft() {
+func (rn *raftNode) startNode() {
 	peers := []raft.Peer{}
 	for i := range rn.peerMap {
 		peers = append(peers, raft.Peer{ID: i})
@@ -69,7 +98,7 @@ func (rn *raftNode) startRaft() {
 		}
 	}
 	go rn.serveRaft()
-	go rn.serveChannels()
+	go rn.run()
 }
 
 func (rn *raftNode) serveRaft() {
@@ -81,7 +110,7 @@ func (rn *raftNode) serveRaft() {
 	server.ListenAndServe()
 }
 
-func (rn *raftNode) serveChannels() {
+func (rn *raftNode) run() {
 
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
@@ -101,19 +130,27 @@ func (rn *raftNode) serveChannels() {
 				switch entry.Type {
 				case raftpb.EntryNormal:
 					log.Printf("Receive committed data on node %v: %v\n", rn.id, string(entry.Data))
-				case raftpb.EntryConfChange:
-					var cc raftpb.ConfChange
+				case raftpb.EntryConfChangeV2:
+					var cc raftpb.ConfChangeV2
 					cc.Unmarshal(entry.Data)
 					rn.node.ApplyConfChange(cc)
 				}
 			}
 			rn.node.Advance()
-		case err := <-rn.transport.ErrorC:
+		case <-rn.done:
 			// stop raft state machine and thus stop the Transport.
-			log.Fatal(err)
+			rn.transport.Stop()
+			return
 		}
 	}
 
+}
+
+// raft.Node does not have locks in Raft package
+func (rn *raftNode) tick() {
+	rn.tickMu.Lock()
+	rn.Tick()
+	rn.tickMu.Unlock()
 }
 
 func (rn *raftNode) Process(ctx context.Context, m raftpb.Message) error {
