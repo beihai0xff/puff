@@ -9,10 +9,10 @@ import (
 
 type StateMachine interface {
 	Set(key string) error
-	Get(key string) *model.Entry
+	Get(key string) (*model.Entry, error)
 	Delete(key string) error
-	Range(start, end string) ([]*model.Entry, error)
-	Backup() StateMachineStatus
+	Range(start, end string) ([]model.Entry, error)
+	Backup() error
 }
 
 type State struct {
@@ -33,6 +33,27 @@ func (s *State) Set(key string) error {
 	version = s.version
 	s.Unlock()
 	return s.kvStorage.Set(key, version)
+}
+
+func (s *State) Get(key string) (*model.Entry, error) {
+	if key == "" {
+
+	}
+	return s.kvStorage.Get(key)
+}
+
+func (s *State) Delete(key string) error {
+	if key == "" {
+
+	}
+	return s.kvStorage.Delete(key)
+}
+
+func (s *State) Range(start, end string) ([]model.Entry, error) {
+	if start == "" || end == "" {
+
+	}
+	return s.kvStorage.Range(start, end), nil
 }
 
 func (s *State) Backup() error {
