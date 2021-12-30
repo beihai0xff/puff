@@ -16,11 +16,23 @@ type StateMachine interface {
 }
 
 type State struct {
-	sync.RWMutex
+	sync.Mutex
 	kvStorage storage.Storage
 	version   uint64
 
 	isDumping bool
+}
+
+func (s *State) Set(key string) error {
+	if key == "" {
+
+	}
+	var version uint64
+	s.Lock()
+	s.version++
+	version = s.version
+	s.Unlock()
+	return s.kvStorage.Set(key, version)
 }
 
 func (s *State) Backup() error {

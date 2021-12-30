@@ -3,6 +3,7 @@ module github.com/beihai0xff/puff
 go 1.16
 
 require (
+	github.com/google/btree v1.0.1
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1
 	go.etcd.io/etcd/raft/v3 v3.5.1
 	go.etcd.io/etcd/server/v3 v3.5.1
