@@ -18,6 +18,9 @@ import (
 )
 
 type raftNodeConfig struct {
+	id      uint64 // client ID for raft session
+	peerMap map[uint64]string
+
 	logger *zap.Logger
 
 	// to check if msg receiver is removed from cluster
@@ -30,9 +33,6 @@ type raftNodeConfig struct {
 }
 
 type raftNode struct {
-	id      uint64 // client ID for raft session
-	peerMap map[uint64]string
-
 	tickMu *sync.Mutex
 
 	node raft.Node
@@ -53,10 +53,13 @@ type raftNode struct {
 	done <-chan struct{}
 }
 
-func NewRaftNode(config raftNodeConfig) *raftNode {
+func newRaftNode(config raftNodeConfig) *raftNode {
 	n := &raftNode{
 		raftNodeConfig: config,
 		raftStorage:    raft.NewMemoryStorage(),
+		// TODO: 添加通信模块实现
+		transport: &rafthttp.Transport{},
+		done:      make(chan struct{}),
 	}
 	if n.heartbeat == 0 {
 		n.ticker = &time.Ticker{}
