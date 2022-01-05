@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-var Peers []peer
+type Peers []peer
 
 type peer struct {
 	ip   string
