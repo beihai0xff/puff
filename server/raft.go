@@ -9,12 +9,13 @@ import (
 	"sync"
 	"time"
 
-	"go.etcd.io/etcd/client/pkg/v3/types"
 	"go.etcd.io/etcd/raft/v3"
 	"go.etcd.io/etcd/raft/v3/raftpb"
-	"go.etcd.io/etcd/server/v3/etcdserver/api/rafthttp"
 	stats "go.etcd.io/etcd/server/v3/etcdserver/api/v2stats"
 	"go.uber.org/zap"
+
+	"github.com/beihai0xff/puff/pkg/types"
+	"github.com/beihai0xff/puff/server/transport"
 )
 
 type raftNodeConfig struct {
@@ -43,7 +44,7 @@ type raftNode struct {
 	// Sending messages MUST NOT block. It is okay to drop messages, since
 	// clients should timeout and reissue their messages.
 	// If transport is nil, server will panic.
-	transport rafthttp.Transporter
+	transport transport.Transporter
 
 	// 提供一个周期性的时钟定时触发 Tick 方法
 	ticker *time.Ticker
@@ -58,7 +59,7 @@ func newRaftNode(config raftNodeConfig) *raftNode {
 		raftNodeConfig: config,
 		raftStorage:    raft.NewMemoryStorage(),
 		// TODO: 添加通信模块实现
-		transport: &rafthttp.Transport{},
+		transport: &transport.GRPCTransport{},
 		done:      make(chan struct{}),
 	}
 	if n.heartbeat == 0 {
@@ -85,7 +86,7 @@ func (rn *raftNode) startNode() {
 		MaxInflightMsgs: 256,
 	}
 	rn.node = raft.StartNode(c, peers)
-	rn.transport = &rafthttp.Transport{
+	rn.transport = &transport.GRPCTransport{
 		Logger:      rn.logger,
 		ID:          types.ID(rn.id),
 		ClusterID:   0x1000,
@@ -152,8 +153,9 @@ func (rn *raftNode) run() {
 // raft.Node does not have locks in Raft package
 func (rn *raftNode) tick() {
 	rn.tickMu.Lock()
+	defer rn.tickMu.Unlock()
 	rn.Tick()
-	rn.tickMu.Unlock()
+
 }
 
 func (rn *raftNode) Process(ctx context.Context, m raftpb.Message) error {
