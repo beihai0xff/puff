@@ -38,12 +38,12 @@ type Transporter interface {
 	// and will not be used after that.
 	// It is the caller's responsibility to ensure the urls are all valid,
 	// or it panics.
-	AddRemote(id types.ID, urls []string)
+	AddRemote(id types.ID, peers []string)
 	// AddPeer adds a peer with given peer urls into the transport.
 	// It is the caller's responsibility to ensure the urls are all valid,
 	// or it panics.
 	// Peer urls are used to connect to the remote peer.
-	AddPeer(id types.ID, urls []string)
+	AddPeer(id types.ID, peers []string)
 	// RemovePeer removes the peer with given id.
 	RemovePeer(id types.ID)
 	// RemoveAllPeers removes all the existing peers in the transport.
@@ -66,7 +66,7 @@ type Transporter interface {
 // GRPCTransport implements Transporter interface. It provides the functionality
 // to send raft messages to peers, and receive raft messages from peers.
 // User should call Handler method to get a handler to serve requests
-// received from peerURLs.
+// received from peers.
 // User needs to call Start before calling other functions, and call
 // Stop when the GRPCTransport is no longer used.
 type GRPCTransport struct {
@@ -93,17 +93,17 @@ type GRPCTransport struct {
 	ErrorC chan error
 }
 
-func (s *GRPCTransport) Start() error                        { return nil }
-func (s *GRPCTransport) Handler() http.Handler               { return nil }
-func (s *GRPCTransport) Send(m []raftpb.Message)             {}
-func (s *GRPCTransport) SendSnapshot()                       {}
-func (s *GRPCTransport) AddRemote(id types.ID, us []string)  {}
-func (s *GRPCTransport) AddPeer(id types.ID, us []string)    {}
-func (s *GRPCTransport) RemovePeer(id types.ID)              {}
-func (s *GRPCTransport) RemoveAllPeers()                     {}
-func (s *GRPCTransport) UpdatePeer(id types.ID, us []string) {}
-func (s *GRPCTransport) ActiveSince(id types.ID) time.Time   { return time.Time{} }
-func (s *GRPCTransport) ActivePeers() int                    { return 0 }
-func (s *GRPCTransport) Stop()                               {}
-func (s *GRPCTransport) Pause()                              {}
-func (s *GRPCTransport) Resume()                             {}
+func (s *GRPCTransport) Start() error                          { return nil }
+func (s *GRPCTransport) Handler() http.Handler                 { return nil }
+func (s *GRPCTransport) Send(m []raftpb.Message)               {}
+func (s *GRPCTransport) SendSnapshot()                         {}
+func (s *GRPCTransport) AddRemote(id types.ID, peers []string) {}
+func (s *GRPCTransport) AddPeer(id types.ID, peers []string)   {}
+func (s *GRPCTransport) RemovePeer(id types.ID)                {}
+func (s *GRPCTransport) RemoveAllPeers()                       {}
+func (s *GRPCTransport) UpdatePeer(id types.ID, us []string)   {}
+func (s *GRPCTransport) ActiveSince(id types.ID) time.Time     { return time.Time{} }
+func (s *GRPCTransport) ActivePeers() int                      { return 0 }
+func (s *GRPCTransport) Stop()                                 {}
+func (s *GRPCTransport) Pause()                                {}
+func (s *GRPCTransport) Resume()                               {}

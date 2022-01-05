@@ -58,9 +58,7 @@ func newRaftNode(config raftNodeConfig) *raftNode {
 	n := &raftNode{
 		raftNodeConfig: config,
 		raftStorage:    raft.NewMemoryStorage(),
-		// TODO: 添加通信模块实现
-		transport: &transport.GRPCTransport{},
-		done:      make(chan struct{}),
+		done:           make(chan struct{}),
 	}
 	if n.heartbeat == 0 {
 		n.ticker = &time.Ticker{}
@@ -86,6 +84,7 @@ func (rn *raftNode) startNode() {
 		MaxInflightMsgs: 256,
 	}
 	rn.node = raft.StartNode(c, peers)
+	// TODO: 添加通信模块实现
 	rn.transport = &transport.GRPCTransport{
 		Logger:      rn.logger,
 		ID:          types.ID(rn.id),
