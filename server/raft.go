@@ -91,7 +91,7 @@ func (rn *raftNode) startNode() {
 		ClusterID:   0x1000,
 		Raft:        rn,
 		ServerStats: stats.NewServerStats("", ""),
-		LeaderStats: stats.NewLeaderStats(zap.NewExample(), strconv.FormatUint(rn.id, 10)),
+		LeaderStats: stats.NewLeaderStats(rn.logger, strconv.FormatUint(rn.id, 10)),
 		ErrorC:      make(chan error),
 	}
 	rn.transport.Start()
