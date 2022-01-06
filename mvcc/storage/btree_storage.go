@@ -14,7 +14,7 @@ type btreeStorage struct {
 	tree *btree.BTree
 }
 
-func newBtreeStorage() Storage {
+func NewBtreeStorage() Storage {
 	return &btreeStorage{
 		tree: btree.New(100),
 	}
@@ -75,6 +75,8 @@ func (t *btreeStorage) Range(start, end string) []model.Entry {
 	return res
 }
 
+// Backup 将某个时刻的存储引擎中的数据备份到磁盘中
 func (t *btreeStorage) Backup() {
+	_ = t.tree.Clone()
 
 }

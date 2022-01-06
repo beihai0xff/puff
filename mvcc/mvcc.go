@@ -23,6 +23,14 @@ type State struct {
 	isDumping bool
 }
 
+func NewState() StateMachine {
+	return &State{
+		kvStorage: storage.NewBtreeStorage(),
+		version:   0,
+		isDumping: false,
+	}
+}
+
 func (s *State) Set(key string) error {
 	if key == "" {
 
